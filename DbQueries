@@ -1,0 +1,83 @@
+-- 1️⃣ CUSTOMER
+CREATE TABLE customer (
+  customer_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
+  full_name       VARCHAR(100) NOT NULL,
+  email           VARCHAR(100) UNIQUE,
+  mobile_no       VARCHAR(15) UNIQUE,
+  currency_code   VARCHAR(10) NOT NULL,
+  created_on      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2️⃣ CUSTOMER_BANK_ACCOUNT
+CREATE TABLE customer_bank_account (
+  account_id      BIGINT PRIMARY KEY AUTO_INCREMENT,
+  customer_id     BIGINT NOT NULL,
+  bank_name       VARCHAR(100) NOT NULL,
+  account_number  VARCHAR(34) NOT NULL,
+  ifsc_code       VARCHAR(20),
+  account_type    VARCHAR(20),
+  is_primary      BOOLEAN DEFAULT FALSE,
+  status          VARCHAR(20) DEFAULT 'ACTIVE',
+  linked_on       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_used_on    TIMESTAMP NULL,
+  nickname        VARCHAR(50),
+  CONSTRAINT fk_cba_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+  CONSTRAINT uc_primary UNIQUE (customer_id, is_primary)
+);
+
+-- 3️⃣ WALLET
+CREATE TABLE wallet (
+  wallet_id       BIGINT PRIMARY KEY AUTO_INCREMENT,
+  customer_id     BIGINT NOT NULL,
+  balance         DECIMAL(12,2) DEFAULT 0.0,
+  status          VARCHAR(20) DEFAULT 'ACTIVE',
+  last_updated    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_wallet_customer FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+);
+
+-- 4️⃣ MERCHANT
+CREATE TABLE merchant (
+  merchant_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
+  merchant_name   VARCHAR(100) NOT NULL,
+  merchant_email  VARCHAR(100),
+  bank_account_no VARCHAR(30),
+  status          VARCHAR(20) DEFAULT 'ACTIVE'
+);
+
+-- 5️⃣ TRANSACTION_LEDGER
+CREATE TABLE transaction_ledger (
+  txn_id          BIGINT PRIMARY KEY AUTO_INCREMENT,
+  txn_ref         VARCHAR(50) UNIQUE,
+  wallet_id       BIGINT,
+  merchant_id     BIGINT,
+  bank_account_id BIGINT,
+  amount          DECIMAL(12,2) NOT NULL,
+  currency_code   VARCHAR(10) NOT NULL,
+  txn_type        VARCHAR(20),
+  txn_status      VARCHAR(20),
+  remarks         VARCHAR(255),
+  txn_time        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_tl_wallet FOREIGN KEY (wallet_id) REFERENCES wallet(wallet_id),
+  CONSTRAINT fk_tl_merchant FOREIGN KEY (merchant_id) REFERENCES merchant(merchant_id),
+  CONSTRAINT fk_tl_bank FOREIGN KEY (bank_account_id) REFERENCES customer_bank_account(account_id)
+);
+
+-- 6️⃣ WALLET_FEE
+CREATE TABLE wallet_fee (
+  fee_id          BIGINT PRIMARY KEY AUTO_INCREMENT,
+  txn_id          BIGINT NOT NULL,
+  fee_amount      DECIMAL(10,2),
+  created_on      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_fee_txn FOREIGN KEY (txn_id) REFERENCES transaction_ledger(txn_id)
+);
+
+-- 7️⃣ AUDIT_LOG
+CREATE TABLE audit_log (
+  audit_id        BIGINT PRIMARY KEY AUTO_INCREMENT,
+  txn_id          BIGINT,
+  action_type     VARCHAR(50),
+  actor           VARCHAR(50),
+  details         VARCHAR(255),
+  logged_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_audit_txn FOREIGN KEY (txn_id) REFERENCES transaction_ledger(txn_id)
+);
