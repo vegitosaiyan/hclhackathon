@@ -1,6 +1,6 @@
 -- 1️⃣ CUSTOMER
 CREATE TABLE customer (
-  customer_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
+  customer_id     BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   full_name       VARCHAR(100) NOT NULL,
   email           VARCHAR(100) UNIQUE,
   mobile_no       VARCHAR(15) UNIQUE,
@@ -10,7 +10,7 @@ CREATE TABLE customer (
 
 -- 2️⃣ CUSTOMER_BANK_ACCOUNT
 CREATE TABLE customer_bank_account (
-  account_id      BIGINT PRIMARY KEY AUTO_INCREMENT,
+  account_id      BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   customer_id     BIGINT NOT NULL,
   bank_name       VARCHAR(100) NOT NULL,
   account_number  VARCHAR(34) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE customer_bank_account (
 
 -- 3️⃣ WALLET
 CREATE TABLE wallet (
-  wallet_id       BIGINT PRIMARY KEY AUTO_INCREMENT,
+  wallet_id       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   customer_id     BIGINT NOT NULL,
   balance         DECIMAL(12,2) DEFAULT 0.0,
   status          VARCHAR(20) DEFAULT 'ACTIVE',
@@ -37,7 +37,7 @@ CREATE TABLE wallet (
 
 -- 4️⃣ MERCHANT
 CREATE TABLE merchant (
-  merchant_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
+  merchant_id     BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   merchant_name   VARCHAR(100) NOT NULL,
   merchant_email  VARCHAR(100),
   bank_account_no VARCHAR(30),
@@ -46,7 +46,7 @@ CREATE TABLE merchant (
 
 -- 5️⃣ TRANSACTION_LEDGER
 CREATE TABLE transaction_ledger (
-  txn_id          BIGINT PRIMARY KEY AUTO_INCREMENT,
+  txn_id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   txn_ref         VARCHAR(50) UNIQUE,
   wallet_id       BIGINT,
   merchant_id     BIGINT,
@@ -64,7 +64,7 @@ CREATE TABLE transaction_ledger (
 
 -- 6️⃣ WALLET_FEE
 CREATE TABLE wallet_fee (
-  fee_id          BIGINT PRIMARY KEY AUTO_INCREMENT,
+  fee_id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   txn_id          BIGINT NOT NULL,
   fee_amount      DECIMAL(10,2),
   created_on      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -73,7 +73,7 @@ CREATE TABLE wallet_fee (
 
 -- 7️⃣ AUDIT_LOG
 CREATE TABLE audit_log (
-  audit_id        BIGINT PRIMARY KEY AUTO_INCREMENT,
+  audit_id        BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   txn_id          BIGINT,
   action_type     VARCHAR(50),
   actor           VARCHAR(50),
