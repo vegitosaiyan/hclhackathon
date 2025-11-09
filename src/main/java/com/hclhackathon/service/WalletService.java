@@ -3,16 +3,21 @@ package com.hclhackathon.service;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import com.hclhackathon.dto.AuditLogDTO;
 import com.hclhackathon.dto.MerchantDTO;
+import com.hclhackathon.dto.TransactionLedgerDTO;
 import com.hclhackathon.dto.WalletDTO;
+import com.hclhackathon.dto.WalletFeeDTO;
 import com.hclhackathon.model.AuditLog;
 import com.hclhackathon.model.Merchant;
 import com.hclhackathon.model.TransactionLedger;
@@ -23,6 +28,8 @@ import com.hclhackathon.repository.MerchantRepository;
 import com.hclhackathon.repository.TransactionLedgerRepository;
 import com.hclhackathon.repository.WalletFeeRepository;
 import com.hclhackathon.repository.WalletRepository;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import jakarta.transaction.Transactional;
 
@@ -50,6 +57,9 @@ public class WalletService {
     
     @Autowired
     private ModelMapper modelMapper;
+    
+    @Autowired
+    private Executor taskExecutor;
 
     private static final BigDecimal WALLET_FEE_PERCENTAGE = new BigDecimal("0.02"); // 2% fee
 
@@ -68,9 +78,26 @@ public class WalletService {
         return walletDTO;
     }
 
-    // 2️⃣ Process Payment
-    public TransactionLedger processPayment(Long walletId, Long merchantId, BigDecimal amount, String currencyCode, String productName) {
-
+    @Transactional(rollbackOn = Exception.class)
+    @Async
+    public CompletableFuture<TransactionLedgerDTO> processPayment(
+            Long walletId, Long merchantId, BigDecimal amount, String currencyCode, String productName) {
+    	
+            return CompletableFuture.supplyAsync(() ->
+                    processPaymentTransactional(walletId, merchantId, amount, currencyCode, productName),taskExecutor
+            );
+        
+     }
+    
+    @Transactional
+    protected TransactionLedgerDTO processPaymentTransactional(
+            Long walletId,
+            Long merchantId,
+            BigDecimal amount,
+            String currencyCode,
+            String productName
+    ) {
+        // Fetch wallet and merchant
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
 
@@ -82,36 +109,33 @@ public class WalletService {
             throw new RuntimeException("Invalid currency for wallet");
         }
 
-        // Validate wallet balance
+        // Validate balance
         if (wallet.getBalance().compareTo(amount) < 0) {
             throw new RuntimeException("Insufficient wallet balance");
         }
 
-        // Deduct amount
+        // Deduct wallet balance
         wallet.setBalance(wallet.getBalance().subtract(amount));
         wallet.setLastUpdated(LocalDateTime.now());
         walletRepository.save(wallet);
 
-        // Wallet fee
-        BigDecimal walletFee = amount.multiply(WALLET_FEE_PERCENTAGE);
-        BigDecimal merchantCredit = amount.subtract(walletFee);
-
         // Transaction Ledger
         TransactionLedger txn = new TransactionLedger();
-        txn.setTxnRef("TXN-" + UUID.randomUUID());
+        txn.setTxnRef(productName + "-" + UUID.randomUUID());
         txn.setWallet(wallet);
+        txn.setMerchant(merchant);
         txn.setAmount(amount);
         txn.setCurrencyCode(currencyCode);
         txn.setTxnType("DEBIT");
         txn.setTxnStatus("SUCCESS");
         txn.setRemarks("Payment for product: " + productName);
         txn.setTxnTime(LocalDateTime.now());
-        txnRepo.save(txn);
+        txn = txnRepo.save(txn); // save first to get ID
 
         // Wallet Fee
         WalletFee fee = new WalletFee();
-        fee.setTxn(txn);
-        fee.setFeeAmount(walletFee);
+        fee.setTxn(txn); // link properly
+        fee.setFeeAmount(amount.multiply(WALLET_FEE_PERCENTAGE));
         fee.setCreatedOn(LocalDateTime.now());
         walletFeeRepo.save(fee);
 
@@ -124,9 +148,16 @@ public class WalletService {
         audit.setLoggedTime(LocalDateTime.now());
         auditLogRepository.save(audit);
 
-        // Notification
+        // Notification (can also be async but outside transaction)
         notificationService.notifyMerchant(merchant, txn);
 
-        return txn;
+        // Map to DTO
+        TransactionLedgerDTO dto = modelMapper.map(txn, TransactionLedgerDTO.class);
+        dto.setFee(modelMapper.map(fee, WalletFeeDTO.class));
+        dto.setAuditLogs(modelMapper.map(audit, AuditLogDTO.class));
+
+        return dto;
     }
+
+
 }

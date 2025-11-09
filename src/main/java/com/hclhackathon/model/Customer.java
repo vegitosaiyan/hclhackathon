@@ -1,5 +1,6 @@
 package com.hclhackathon.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +20,11 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.Data;
 
 @Entity
 @Table(name = "customer")
+@Data
 public class Customer {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,69 +54,5 @@ public class Customer {
     private Wallet wallet;
 
 
-	public Long getCustomerId() {
-		return customerId;
-	}
-
-	public void setCustomerId(Long customerId) {
-		this.customerId = customerId;
-	}
-
-	public String getFullName() {
-		return fullName;
-	}
-
-	public void setFullName(String fullName) {
-		this.fullName = fullName;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getMobileNo() {
-		return mobileNo;
-	}
-
-	public void setMobileNo(String mobileNo) {
-		this.mobileNo = mobileNo;
-	}
-
-	public String getCurrencyCode() {
-		return currencyCode;
-	}
-
-	public void setCurrencyCode(String currencyCode) {
-		this.currencyCode = currencyCode;
-	}
-
-	public LocalDateTime getCreatedOn() {
-		return createdOn;
-	}
-
-	public void setCreatedOn(LocalDateTime createdOn) {
-		this.createdOn = createdOn;
-	}
-
-	public List<CustomerBankAccount> getBankAccounts() {
-		return bankAccounts;
-	}
-
-	public void setBankAccounts(List<CustomerBankAccount> bankAccounts) {
-		this.bankAccounts = bankAccounts;
-	}
-
-	public Wallet getWallet() {
-		return wallet;
-	}
-
-	public void setWallet(Wallet wallet) {
-		this.wallet = wallet;
-	}
-
-
+	
 }

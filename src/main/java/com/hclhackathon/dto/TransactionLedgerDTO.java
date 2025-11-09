@@ -29,5 +29,5 @@ public class TransactionLedgerDTO {
     private String remarks;
     private LocalDateTime txnTime;
     private WalletFeeDTO fee;
-    private List<AuditLogDTO> auditLogs;
+    private AuditLogDTO auditLogs;
 }

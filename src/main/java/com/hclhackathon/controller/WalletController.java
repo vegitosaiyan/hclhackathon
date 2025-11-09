@@ -1,10 +1,12 @@
 package com.hclhackathon.controller;
 
 import java.math.BigDecimal;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hclhackathon.dto.TransactionLedgerDTO;
 import com.hclhackathon.dto.WalletDTO;
 import com.hclhackathon.model.TransactionLedger;
 import com.hclhackathon.model.Wallet;
@@ -41,20 +44,15 @@ public class WalletController {
 
     // 2️⃣ Process payment
     @PostMapping("/pay")
-    public ResponseEntity<TransactionLedger> payMerchant(
+    @Async
+    public CompletableFuture<TransactionLedgerDTO> payMerchant(
             @RequestParam Long walletId,
             @RequestParam Long merchantId,
             @RequestParam BigDecimal amount,
             @RequestParam String currency,
             @RequestParam String productName) {
 
-        try {
-            TransactionLedger txn = walletService.processPayment(walletId, merchantId, amount, currency, productName);
-            return ResponseEntity.ok(txn);
-        } catch (Exception e) {
-            log.error("Payment failed", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
+            return walletService.processPayment(walletId, merchantId, amount, currency, productName);
     }
 }
 
