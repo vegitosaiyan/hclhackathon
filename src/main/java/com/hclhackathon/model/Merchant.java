@@ -1,7 +1,11 @@
 package com.hclhackathon.model;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -14,8 +18,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.Data;
 @Entity
 @Table(name = "merchant")
+@Data
 public class Merchant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,46 +39,7 @@ public class Merchant {
     @Column(length = 20)
     private String status = "ACTIVE";
 
-	public Long getMerchantId() {
-		return merchantId;
-	}
-
-	public void setMerchantId(Long merchantId) {
-		this.merchantId = merchantId;
-	}
-
-	public String getMerchantName() {
-		return merchantName;
-	}
-
-	public void setMerchantName(String merchantName) {
-		this.merchantName = merchantName;
-	}
-
-	public String getMerchantEmail() {
-		return merchantEmail;
-	}
-
-	public void setMerchantEmail(String merchantEmail) {
-		this.merchantEmail = merchantEmail;
-	}
-
-	public String getBankAccountNo() {
-		return bankAccountNo;
-	}
-
-	public void setBankAccountNo(String bankAccountNo) {
-		this.bankAccountNo = bankAccountNo;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-
+    @OneToMany(mappedBy = "merchant", cascade = CascadeType.ALL)
+    private List<TransactionLedger> transactions = new ArrayList<>();
 
 }
