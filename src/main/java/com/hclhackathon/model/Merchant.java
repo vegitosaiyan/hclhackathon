@@ -4,10 +4,12 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -30,9 +32,6 @@ public class Merchant {
 
     @Column(length = 20)
     private String status = "ACTIVE";
-
-    @OneToMany(mappedBy = "merchant")
-    private List<TransactionLedger> transactions;
 
 	public Long getMerchantId() {
 		return merchantId;
@@ -74,13 +73,6 @@ public class Merchant {
 		this.status = status;
 	}
 
-	public List<TransactionLedger> getTransactions() {
-		return transactions;
-	}
-
-	public void setTransactions(List<TransactionLedger> transactions) {
-		this.transactions = transactions;
-	}
 
 
 }
