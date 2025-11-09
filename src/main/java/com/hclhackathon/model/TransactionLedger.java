@@ -30,10 +30,6 @@ public class TransactionLedger {
     private Wallet wallet;
 
     @ManyToOne
-    @JoinColumn(name = "merchant_id")
-    private Merchant merchant;
-
-    @ManyToOne
     @JoinColumn(name = "bank_account_id")
     private CustomerBankAccount bankAccount;
 
@@ -82,18 +78,6 @@ public class TransactionLedger {
 
 	public void setWallet(Wallet wallet) {
 		this.wallet = wallet;
-	}
-
-	public Merchant getMerchant() {
-		return merchant;
-	}
-
-	public void setMerchant(Merchant merchant) {
-		this.merchant = merchant;
-	}
-
-	public CustomerBankAccount getBankAccount() {
-		return bankAccount;
 	}
 
 	public void setBankAccount(CustomerBankAccount bankAccount) {

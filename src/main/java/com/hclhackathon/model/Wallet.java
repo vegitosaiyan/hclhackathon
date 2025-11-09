@@ -3,6 +3,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +27,7 @@ public class Wallet {
 
     @OneToOne
     @JoinColumn(name = "customer_id", nullable = false)
+    @JsonBackReference
     private Customer customer;
 
     @Column(precision = 12, scale = 2)
@@ -35,6 +39,7 @@ public class Wallet {
     private LocalDateTime lastUpdated = LocalDateTime.now();
 
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL)
+    @JsonManagedReference 
     private List<TransactionLedger> transactions;
 
 	public Long getWalletId() {

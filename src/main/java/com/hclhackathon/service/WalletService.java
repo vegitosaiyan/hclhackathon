@@ -1,12 +1,18 @@
 package com.hclhackathon.service;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.hclhackathon.dto.MerchantDTO;
+import com.hclhackathon.dto.WalletDTO;
 import com.hclhackathon.model.AuditLog;
 import com.hclhackathon.model.Merchant;
 import com.hclhackathon.model.TransactionLedger;
@@ -41,17 +47,25 @@ public class WalletService {
 
     @Autowired
     private NotificationService notificationService;
+    
+    @Autowired
+    private ModelMapper modelMapper;
 
     private static final BigDecimal WALLET_FEE_PERCENTAGE = new BigDecimal("0.02"); // 2% fee
 
     // 1️⃣ Show Wallet + Customer + Bank Accounts
-    public Wallet getWalletWithCustomerAndAccounts(Long walletId) {
+    public WalletDTO getWalletWithCustomerAndAccounts(Long walletId) {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found"));
-
         // Force fetch customer & bank accounts (if lazy)
         wallet.getCustomer().getBankAccounts().size();
-        return wallet;
+        // Fetch all merchants (no direct relation)
+        List<Merchant> allMerchants = merchantRepository.findAll();
+        Type listType = new TypeToken<List<MerchantDTO>>() {}.getType();
+        List<MerchantDTO> merchantDTO = modelMapper.map(allMerchants, listType);
+        WalletDTO walletDTO = modelMapper.map(wallet, WalletDTO.class);
+        walletDTO.getCustomer().setMerchants(merchantDTO);
+        return walletDTO;
     }
 
     // 2️⃣ Process Payment
@@ -86,7 +100,6 @@ public class WalletService {
         TransactionLedger txn = new TransactionLedger();
         txn.setTxnRef("TXN-" + UUID.randomUUID());
         txn.setWallet(wallet);
-        txn.setMerchant(merchant);
         txn.setAmount(amount);
         txn.setCurrencyCode(currencyCode);
         txn.setTxnType("DEBIT");

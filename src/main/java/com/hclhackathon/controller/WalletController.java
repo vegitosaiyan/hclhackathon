@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hclhackathon.dto.WalletDTO;
 import com.hclhackathon.model.TransactionLedger;
 import com.hclhackathon.model.Wallet;
 import com.hclhackathon.service.WalletService;
@@ -28,9 +29,9 @@ public class WalletController {
 
     // 1️⃣ Show wallet + customer + accounts
     @GetMapping("/{walletId}")
-    public ResponseEntity<Wallet> getWalletDetails(@PathVariable Long walletId) {
+    public ResponseEntity<WalletDTO> getWalletDetails(@PathVariable Long walletId) {
         try {
-            Wallet wallet = walletService.getWalletWithCustomerAndAccounts(walletId);
+            WalletDTO wallet = walletService.getWalletWithCustomerAndAccounts(walletId);
             return ResponseEntity.ok(wallet);
         } catch (Exception e) {
             log.error("Error fetching wallet details", e);
